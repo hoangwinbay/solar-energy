@@ -1,0 +1,165 @@
+{
+  "model_type": "RandomForestClassifier",
+  "n_samples": 50000,
+  "train_samples": 40000,
+  "test_samples": 10000,
+  "feature_cols": [
+    "aqi_us",
+    "pm2_5",
+    "pm10",
+    "temperature",
+    "humidity",
+    "precipitation_prob",
+    "uv_index",
+    "wind_speed",
+    "age",
+    "has_respiratory",
+    "has_asthma",
+    "has_heart",
+    "has_copd"
+  ],
+  "target_cols": [
+    "rec_exercise",
+    "rec_window",
+    "rec_mask",
+    "rec_purifier"
+  ],
+  "exact_match_ratio": 99.63,
+  "metrics": {
+    "rec_exercise": {
+      "accuracy": 99.69,
+      "report": {
+        "0": {
+          "precision": 1.0,
+          "recall": 0.9951547358549546,
+          "f1-score": 0.9975714845280063,
+          "support": 6398.0
+        },
+        "1": {
+          "precision": 0.9914671070740435,
+          "recall": 1.0,
+          "f1-score": 0.9957152729785763,
+          "support": 3602.0
+        },
+        "accuracy": 0.9969,
+        "macro avg": {
+          "precision": 0.9957335535370218,
+          "recall": 0.9975773679274773,
+          "f1-score": 0.9966433787532913,
+          "support": 10000.0
+        },
+        "weighted avg": {
+          "precision": 0.9969264519680704,
+          "recall": 0.9969,
+          "f1-score": 0.9969028771279016,
+          "support": 10000.0
+        }
+      }
+    },
+    "rec_window": {
+      "accuracy": 99.99,
+      "report": {
+        "0": {
+          "precision": 0.9998477002741395,
+          "recall": 1.0,
+          "f1-score": 0.9999238443378266,
+          "support": 6565.0
+        },
+        "1": {
+          "precision": 1.0,
+          "recall": 0.9997088791848617,
+          "f1-score": 0.999854418401514,
+          "support": 3435.0
+        },
+        "accuracy": 0.9999,
+        "macro avg": {
+          "precision": 0.9999238501370697,
+          "recall": 0.9998544395924309,
+          "f1-score": 0.9998891313696703,
+          "support": 10000.0
+        },
+        "weighted avg": {
+          "precision": 0.9999000152299726,
+          "recall": 0.9999,
+          "f1-score": 0.9998999965287032,
+          "support": 10000.0
+        }
+      }
+    },
+    "rec_mask": {
+      "accuracy": 99.98,
+      "report": {
+        "0": {
+          "precision": 0.9994216310005783,
+          "recall": 0.9994216310005783,
+          "f1-score": 0.9994216310005783,
+          "support": 1729.0
+        },
+        "1": {
+          "precision": 0.9998790956353525,
+          "recall": 0.9998790956353525,
+          "f1-score": 0.9998790956353525,
+          "support": 8271.0
+        },
+        "accuracy": 0.9998,
+        "macro avg": {
+          "precision": 0.9996503633179654,
+          "recall": 0.9996503633179654,
+          "f1-score": 0.9996503633179654,
+          "support": 10000.0
+        },
+        "weighted avg": {
+          "precision": 0.9998,
+          "recall": 0.9998,
+          "f1-score": 0.9998,
+          "support": 10000.0
+        }
+      }
+    },
+    "rec_purifier": {
+      "accuracy": 99.97,
+      "report": {
+        "0": {
+          "precision": 0.9988465974625144,
+          "recall": 1.0,
+          "f1-score": 0.9994229659549914,
+          "support": 2598.0
+        },
+        "1": {
+          "precision": 1.0,
+          "recall": 0.9995947041340179,
+          "f1-score": 0.9997973109925005,
+          "support": 7402.0
+        },
+        "accuracy": 0.9997,
+        "macro avg": {
+          "precision": 0.9994232987312572,
+          "recall": 0.9997973520670089,
+          "f1-score": 0.9996101384737459,
+          "support": 10000.0
+        },
+        "weighted avg": {
+          "precision": 0.9997003460207612,
+          "recall": 0.9997,
+          "f1-score": 0.9997000561517556,
+          "support": 10000.0
+        }
+      }
+    }
+  },
+  "feature_importance": {
+    "aqi_us": 37.05,
+    "pm2_5": 21.99,
+    "age": 11.47,
+    "pm10": 10.01,
+    "precipitation_prob": 4.72,
+    "has_asthma": 4.29,
+    "has_copd": 3.82,
+    "has_respiratory": 3.08,
+    "has_heart": 1.89,
+    "temperature": 0.47,
+    "humidity": 0.41,
+    "uv_index": 0.4,
+    "wind_speed": 0.4
+  }
+}

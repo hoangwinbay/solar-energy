@@ -22,13 +22,18 @@ Hệ thống được xây dựng theo kiến trúc DSS kinh điển gồm 4 ph�
 elegant-chandrasekhar/
 │
 ├── data/                               # Thư mục lưu trữ các bộ Dataset CSV
-│   ├── air_quality_hanoi.csv           # Dữ liệu chất lượng không khí & thời tiết Hà Nội (792 bản ghi)
-│   ├── air_quality_hcm.csv             # Dữ liệu chất lượng không khí & thời tiết TP.HCM (792 bản ghi)
-│   ├── weather_forecast.csv            # Dữ liệu dự báo thời tiết tổng hợp (1584 bản ghi)
-│   └── dss_decision_rules.csv          # Bảng từ điển mã hóa tập luật If-Then của DSS
+│   ├── air_quality_hanoi.csv           # Dữ liệu chất lượng không khí & thời tiết Hà Nội (888 bản ghi)
+│   ├── air_quality_hcm.csv             # Dữ liệu chất lượng không khí & thời tiết TP.HCM (888 bản ghi)
+│   ├── weather_forecast.csv            # Dữ liệu dự báo thời tiết tổng hợp (1776 bản ghi)
+│   ├── dss_decision_rules.csv          # Bảng từ điển mã hóa tập luật If-Then của DSS
+│   └── health_recommendations_50k.csv  # Dataset 50.000 bản ghi huấn luyện mô hình Machine Learning
+│
+├── models/                             # Thư mục lưu trữ mô hình Machine Learning
+│   ├── health_rec_model.joblib         # Mô hình Random Forest Multi-Output (Độ chính xác 99.6%)
+│   └── model_metrics.json              # Báo cáo đánh giá chi tiết (Accuracy, F1, Feature Importance)
 │
 ├── notebooks/                          # Thư mục Notebook nghiên cứu khoa học dữ liệu
-│   └── air_quality_dss_analysis.ipynb  # File Jupyter Notebook hoàn chỉnh (EDA, Heatmap, Test luật)
+│   └── air_quality_dss_analysis.ipynb  # File Jupyter Notebook hoàn chỉnh (EDA, Heatmap, Train ML 50k mẫu)
 │
 ├── src/                                # Mã nguồn xử lý nghiệp vụ
 │   ├── __init__.py
@@ -36,6 +41,7 @@ elegant-chandrasekhar/
 │   └── rule_engine.py                  # Module động cơ luật If-Then đa tiêu chí
 │
 ├── scripts/
+│   ├── train_recommendation_model.py   # Script sinh 50k mẫu và huấn luyện mô hình Machine Learning
 │   └── build_notebook.py               # Script tự động tạo và thực thi notebook
 │
 ├── app.py                              # Ứng dụng Web chính phát triển bằng Streamlit

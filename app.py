@@ -30,6 +30,7 @@ import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
 import pydeck as pdk
+import joblib
 
 # Module dữ liệu và luật If-Then DSS
 import importlib
@@ -522,6 +523,18 @@ def get_rec_icon_b64(icon_name: str) -> str:
     return ""
 
 
+@st.cache_resource
+def load_ml_model():
+    """Tải mô hình Machine Learning Random Forest Multi-Output đã huấn luyện trên 50.000 mẫu dữ liệu."""
+    model_path = Path("models/health_rec_model.joblib")
+    if model_path.exists():
+        try:
+            return joblib.load(model_path)
+        except Exception as e:
+            print(f"Lỗi tải mô hình ML: {e}")
+    return None
+
+
 def get_aqi_theme(aqi_val: float):
     """Màu sắc chuẩn EPA và nhãn hiển thị cho AQI."""
     if pd.isna(aqi_val):
@@ -753,7 +766,7 @@ hero_html = (
     f'{gauge_svg}'
     f'<div class="ios-air-status" style="margin-top: 6px; margin-bottom: 12px;">Chất lượng không khí: <span style="color: {aqi_color}; font-weight: 800;">{aqi_category}</span></div>'
     f'<div class="main-pollutant-bar" style="background: {aqi_color}; color: #ffffff; border-radius: 12px; padding: 11px 20px; display: flex; justify-content: space-between; align-items: center; margin: 16px 0 14px 0; font-family: -apple-system, BlinkMacSystemFont, \'SF Pro Display\', \'Segoe UI\', Roboto, sans-serif; box-shadow: 0 4px 14px {aqi_color}40;">'
-    f'<span style="font-size: 15px; font-weight: 500; letter-spacing: -0.2px;">Main pollutant: <strong style="font-weight: 800; font-size: 16px;">{main_pol_name}</strong></span>'
+    f'<span style="font-size: 15px; font-weight: 500; letter-spacing: -0.2px;">Chất ô nhiễm chính: <strong style="font-weight: 800; font-size: 16px;">{main_pol_name}</strong></span>'
     f'<span style="font-size: 16px; font-weight: 800; letter-spacing: -0.2px;">{main_pol_val}</span>'
     f'</div>'
     f'<div class="ios-advisory-card">'
@@ -852,10 +865,10 @@ with st.container(border=True):
         med_c1, med_c2 = st.columns(2)
         with med_c1:
             cb_respiratory = st.checkbox("🫁 Hô hấp mãn tính", value=False, key="cb_resp")
-            cb_asthma = st.checkbox("🌬️ Hen suyễn (Asthma)", value=False, key="cb_asthma")
+            cb_asthma = st.checkbox("🌬️ Hen suyễn", value=False, key="cb_asthma")
         with med_c2:
             cb_heart = st.checkbox("❤️ Bệnh tim mạch", value=False, key="cb_heart")
-            cb_lung = st.checkbox("🩺 Bệnh phổi (COPD)", value=False, key="cb_lung")
+            cb_lung = st.checkbox("🩺 Bệnh phổi", value=False, key="cb_lung")
 
     # Xác định mức độ nhạy cảm & phân nhóm
     is_child = user_age < 12
@@ -869,94 +882,107 @@ with st.container(border=True):
     if cb_heart:
         selected_conditions.append("Bệnh tim mạch")
     if cb_lung:
-        selected_conditions.append("Bệnh phổi (COPD)")
+        selected_conditions.append("Bệnh phổi")
     if cb_respiratory:
         selected_conditions.append("Hô hấp mãn tính")
 
     conditions_display_str = ", ".join(selected_conditions) if selected_conditions else "Không có bệnh nền (Khỏe mạnh)"
 
-    # Xác định các khuyến nghị sức khỏe (theo chuẩn EPA / WHO / IQAir Health Recommendations)
-    if current_aqi <= 50:
-        # Cấp 1: Tốt (0 - 50) - Xanh lá
-        bike_icon = "bike1"
-        win_icon = "win1"
-        mask_icon = "mask1"
-        air_icon = "air1"
+    # -------------------------------------------------------------
+    # SUY DIỄN KHUYẾN NGHỊ: DỰ ĐOÁN BẰNG MÔ HÌNH RANDOM FOREST (50.000 MẪU)
+    # -------------------------------------------------------------
+    ml_model = load_ml_model()
+    is_ml_active = False
 
-        ex_text = "Rất lý tưởng để tập thể dục và vận động ngoài trời."
-        win_text = "Mở cửa sổ để đón không khí trong lành tự nhiên."
-        mask_text = "Không cần đeo khẩu trang chống bụi."
-        purifier_text = "Chất lượng không khí tốt, chưa cần bật máy lọc."
+    if ml_model is not None:
+        try:
+            feat_vec = np.array([[
+                float(current_aqi),
+                float(current_pm25),
+                float(current_pm10),
+                float(current_temp),
+                float(current_humidity),
+                float(current_rain),
+                float(current_uv),
+                float(current_wind),
+                int(user_age),
+                int(cb_respiratory),
+                int(cb_asthma),
+                int(cb_heart),
+                int(cb_lung)
+            ]])
+            ml_pred = ml_model.predict(feat_vec)[0]
+            pred_exercise, pred_window, pred_mask, pred_purifier = ml_pred
+            is_ml_active = True
+        except Exception as e:
+            print("Lỗi suy diễn ML:", e)
+            is_ml_active = False
 
-    elif current_aqi <= 100:
-        # Cấp 2: Trung bình (51 - 100) - Vàng (ví dụ AQI 76 tại Hà Giang)
-        if is_sensitive:
-            bike_icon = "bike2"
-            win_icon = "win2"
-            mask_icon = "mask2"
-            air_icon = "air2"
-
-            ex_text = "Nhóm nhạy cảm nên giảm bớt các bài tập thể lực gắng sức kéo dài."
-            win_text = "Có thể mở cửa sổ thông gió tự nhiên; hạn chế nếu nhà sát đường lớn."
-            mask_text = "Nhóm nhạy cảm nên đeo khẩu trang y tế khi lưu thông ngoài đường."
-            purifier_text = "Người có bệnh nền hô hấp có thể bật máy lọc không khí ở chế độ nhẹ."
+    if is_ml_active:
+        # 1. Khuyến nghị tập thể dục ngoài trời
+        if pred_exercise == 0:
+            bike_icon = "bike3"
+            ex_text = "Tránh tập thể dục ngoài trời để bảo vệ đường hô hấp và tim mạch." if is_sensitive else "Tránh tập thể dục ngoài trời do thời tiết hoặc ô nhiễm bụi mịn tăng cao."
         else:
             bike_icon = "bike1"
-            win_icon = "win1"
-            mask_icon = "mask1"
-            air_icon = "air1"
+            ex_text = "Rất lý tưởng để tập thể dục và vận động ngoài trời." if current_aqi <= 50 else "Có thể tập thể dục và sinh hoạt ngoài trời bình thường."
 
-            ex_text = "Có thể tập thể dục và sinh hoạt ngoài trời bình thường."
-            win_text = "Có thể mở cửa sổ để lưu thông không khí trong nhà."
-            mask_text = "Chưa cần khẩu trang chống bụi (nên đeo khẩu trang y tế khi đi xe máy)."
-            purifier_text = "Không khí ở mức chấp nhận được, chưa cần thiết bật máy lọc."
-
-    elif current_aqi <= 150:
-        # Cấp 3: Kém - Nhạy cảm (101 - 150) - Cam
-        if is_sensitive:
-            bike_icon = "bike3"
+        # 2. Khuyến nghị đóng / mở cửa sổ
+        if pred_window == 0:
             win_icon = "win3"
-            mask_icon = "mask2"
-            air_icon = "air2"
+            win_text = "Hãy đóng cửa sổ để tránh không khí ô nhiễm bên ngoài."
+        else:
+            win_icon = "win1"
+            win_text = "Mở cửa sổ để đón không khí trong lành tự nhiên."
 
+        # 3. Khuyến nghị khẩu trang
+        if pred_mask == 1:
+            mask_icon = "mask3" if (is_sensitive or current_aqi > 150) else "mask2"
+            mask_text = "Bắt buộc đeo khẩu trang lọc bụi mịn chuẩn N95 / KF94 khi ra ngoài." if (is_sensitive or current_aqi > 150) else "Hãy đeo khẩu trang khi ra ngoài trời."
+        else:
+            mask_icon = "mask1"
+            mask_text = "Không cần đeo khẩu trang chống bụi."
+
+        # 4. Khuyến nghị máy lọc không khí
+        if pred_purifier == 1:
+            air_icon = "air3" if (is_sensitive or current_aqi > 150) else "air2"
+            purifier_text = "Hãy bật máy lọc không khí có màng lọc HEPA trong phòng." if (is_sensitive or current_aqi > 150) else "Hãy bật máy lọc không khí."
+        else:
+            air_icon = "air1"
+            purifier_text = "Chất lượng không khí tốt, chưa cần bật máy lọc."
+    else:
+        # Fallback theo bảng quy chuẩn EPA / WHO
+        if current_aqi <= 50:
+            bike_icon, win_icon, mask_icon, air_icon = "bike1", "win1", "mask1", "air1"
+            ex_text = "Rất lý tưởng để tập thể dục và vận động ngoài trời."
+            win_text = "Mở cửa sổ để đón không khí trong lành tự nhiên."
+            mask_text = "Không cần đeo khẩu trang chống bụi."
+            purifier_text = "Chất lượng không khí tốt, chưa cần bật máy lọc."
+        elif current_aqi <= 100:
+            if is_sensitive:
+                bike_icon, win_icon, mask_icon, air_icon = "bike2", "win2", "mask2", "air2"
+                ex_text = "Nhóm nhạy cảm nên giảm bớt các bài tập thể lực gắng sức kéo dài."
+                win_text = "Có thể mở cửa sổ thông gió tự nhiên; hạn chế nếu nhà sát đường lớn."
+                mask_text = "Nhóm nhạy cảm nên đeo khẩu trang y tế khi lưu thông ngoài đường."
+                purifier_text = "Người có bệnh nền hô hấp có thể bật máy lọc không khí ở chế độ nhẹ."
+            else:
+                bike_icon, win_icon, mask_icon, air_icon = "bike1", "win1", "mask1", "air1"
+                ex_text = "Có thể tập thể dục và sinh hoạt ngoài trời bình thường."
+                win_text = "Có thể mở cửa sổ để lưu thông không khí trong nhà."
+                mask_text = "Chưa cần khẩu trang chống bụi (nên đeo khẩu trang y tế khi đi xe máy)."
+                purifier_text = "Không khí ở mức chấp nhận được, chưa cần thiết bật máy lọc."
+        elif current_aqi <= 150:
+            bike_icon, win_icon, mask_icon, air_icon = "bike3", "win3", "mask2", "air2"
             ex_text = "Tránh tập thể dục ngoài trời để bảo vệ đường hô hấp và tim mạch."
             win_text = "Nên đóng cửa sổ để tránh bụi mịn tích tụ trong phòng."
             mask_text = "Cần đeo khẩu trang lọc bụi khi bắt buộc phải ra ngoài."
             purifier_text = "Nên bật máy lọc không khí có màng lọc HEPA trong phòng."
         else:
-            bike_icon = "bike2"
-            win_icon = "win2"
-            mask_icon = "mask2"
-            air_icon = "air2"
-
-            ex_text = "Nên giảm cường độ tập thể thao ngoài trời hoặc chuyển vào phòng gym."
-            win_text = "Hạn chế mở cửa sổ trong các khung giờ cao điểm giao thông."
-            mask_text = "Nên đeo khẩu trang y tế hoặc KN90 khi ra các trục đường lớn."
-            purifier_text = "Có thể bật máy lọc không khí để giữ không gian sống sạch."
-
-    elif current_aqi <= 200:
-        # Cấp 4: Xấu (151 - 200) - Đỏ
-        bike_icon = "bike3"
-        win_icon = "win3"
-        mask_icon = "mask3"
-        air_icon = "air3"
-
-        ex_text = "Tránh tập thể dục ngoài trời, chuyển toàn bộ hoạt động thể chất vào trong nhà."
-        win_text = "Hãy đóng kín cửa sổ để tránh không khí ô nhiễm xâm nhập."
-        mask_text = "Bắt buộc đeo khẩu trang lọc bụi mịn chuẩn N95 / KF94 khi ra ngoài."
-        purifier_text = "Hãy vận hành máy lọc không khí liên tục trong phòng kín."
-
-    else:
-        # Cấp 5 & 6: Rất xấu & Nguy hại (> 200) - Tím / Nâu đỏ
-        bike_icon = "bike3"
-        win_icon = "win3"
-        mask_icon = "mask3"
-        air_icon = "air3"
-
-        ex_text = "Tuyệt đối không hoạt động thể dục hay vận động mạnh ngoài trời."
-        win_text = "Đóng chặt mọi cửa sổ và cửa thông gió, giữ kín không gian sống."
-        mask_text = "Hạn chế tối đa ra ngoài; bắt buộc dùng khẩu trang chuẩn N95/KF94 ôm khít."
-        purifier_text = "Vận hành máy lọc không khí công suất tối đa trong không gian kín."
+            bike_icon, win_icon, mask_icon, air_icon = "bike3", "win3", "mask3", "air3"
+            ex_text = "Tránh tập thể dục ngoài trời, chuyển toàn bộ hoạt động thể chất vào trong nhà."
+            win_text = "Hãy đóng kín cửa sổ để tránh không khí ô nhiễm xâm nhập."
+            mask_text = "Bắt buộc đeo khẩu trang lọc bụi mịn chuẩn N95 / KF94 khi ra ngoài."
+            purifier_text = "Hãy vận hành máy lọc không khí liên tục trong phòng kín."
 
     src_bike = get_rec_icon_b64(bike_icon)
     src_win = get_rec_icon_b64(win_icon)
