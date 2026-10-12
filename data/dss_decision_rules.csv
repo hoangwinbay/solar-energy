@@ -1,0 +1,10 @@
+﻿rule_id,aqi_min,aqi_max,aqi_category,weather_condition,target_group,running_decision,mask_decision,sensitive_group_decision,home_action
+R01,0,50,Tốt,"Thời tiết đẹp (Mưa < 50%, T < 35°C)",Tất cả mọi người,Rất lý tưởng để chạy bộ tự do,Không cần khẩu trang,Khuyến khích ra ngoài vui chơi,Mở cửa thông gió nhà cửa
+R02,0,50,Tốt,Mưa lớn (>= 60%) hoặc Nắng gắt (>= 36°C),Tất cả mọi người,Tạm dừng chạy ngoài trời (do thời tiết),Không cần khẩu trang bụi,Hạn chế ra ngoài tránh sốc nhiệt/cảm lạnh,Tập luyện thể thao trong nhà
+R03,51,100,Trung bình,Thời tiết bình thường,Người khỏe mạnh,Được phép chạy bộ bình thường,Khẩu trang y tế khi đi đường lớn,Được phép ra ngoài,Thông gió vào đầu giờ chiều
+R04,51,100,Trung bình,Thời tiết bình thường,Trẻ em & Nhóm nhạy cảm,"Giảm cường độ, chỉ đi bộ nhẹ",Nên đeo khẩu trang y tế,Theo dõi phản ứng hô hấp,Uống nhiều nước
+R05,101,150,Kém (Nhạy cảm),Bất kỳ,Người khỏe mạnh / Vận động viên,"Tập nhẹ < 30 phút, tránh giờ cao điểm",Nên đeo khẩu trang y tế hoặc KN90,Hạn chế hoạt động sân trường,"Đóng cửa sổ giờ cao điểm, lọc khí"
+R06,101,150,Kém (Nhạy cảm),Bất kỳ,Trẻ em & Nhóm nhạy cảm,Không tập thể dục ngoài trời,Nên đeo khẩu trang N95,Hạn chế tối đa ra ngoài,Mang theo bình xịt hen suyễn dự phòng
+R07,151,200,Xấu,Bất kỳ,Tất cả mọi người,Cấm vận động mạnh ngoài trời,Bắt buộc khẩu trang N95 / KF94 ôm khít,Nghiêm cấm ra ngoài,"Đóng kín cửa, bật máy lọc không khí"
+R08,201,300,Rất xấu,Bất kỳ,Tất cả mọi người,Cấm tuyệt đối mọi hoạt động ngoài trời,"Bắt buộc N95, chỉ ra ngoài khi cấp bách",Ở trong phòng kín tuyệt đối,"Bật máy lọc khí tối đa, súc họng mũi"
+R09,301,500,Nguy hại,Bất kỳ,Tất cả mọi người,Cảnh báo khẩn cấp: Ngừng mọi hoạt động,Đồ bảo hộ hô hấp chuyên dụng,Cấm rời khỏi phòng kín,Dùng máy lọc khí tuần hoàn khép kín
